@@ -1,5 +1,63 @@
-#include <ctype.h>
-#include <stdio.h>
+// Ankit Shukla, 6.11.2018 (Austria)
+/* Copyright 2018 Ankit Shukla
+This file is free a software; you can redistribute
+it and/or modify it under the terms of the GNU General Public License as published by
+the Free Software Foundation and included in this library; either version 3 of the
+License, or any later version. */
+
+/*!
+  \brief Encoding of finding a Vesicle Traffic System (VTS) network
+  with a given connectivity  connectivity (In terms of graph connectedness).
+  
+	RUN the file with 
+
+> cbmc vts.c --unwindset c::main.L1:B1,c:main.L2:B2,...
+
+	Provide L_i by:
+  1.	locating the line number of 'DYNAMIC CODE' comment on the loop]
+	2.  find the matching loop number L_i by running
+
+> cbmc vts.c --show-loops
+
+TODOS:
+
+1. Take arbitrary input from the console.
+
+2. Add test cases.
+
+3. Show the formatted output. 
+
+4. Help option in the software run.
+
+
+PROPERTIES IN VTS:
+
+V1. For an edge to exist it should have one molecule present.
+
+V2. If a molecule is active on an edge, it should be present on the edge.
+
+V3. A molecule should be present to be active on a node.
+
+V4. The edge labels are subset of the node labels of the source and target nodes.
+
+V5. Self edges are not allowed.
+
+V6. We fix first half as Q-SNAREs and rest as R-SNAREs.
+
+V7. Each edge must fuse with its destination node.
+
+V8. Each node has a deterministic target.
+
+R1-R4. Regulation on nodes and edges
+
+S1-S2. Constraints for stability condition
+
+C1-C4. k-Connectivity constraints.
+
+*/
+
+//#include <ctype.h>
+#include <stdio.h>    // printf() and scanf()
 #include <stdlib.h>
 
 #define M 4
@@ -121,50 +179,9 @@ exit(0);
   }
   __CPROVER_assume(edgeCount == len);
 
-  /*
-    // strongly_connected makes sure that its Graph is Strongly connected
-    strongly_connected = 1;
-
-    for (i = 0; i < N; i++) {
-      for (j = 0; j < N; j++) {
-	if (graph[i][j] >= 1 &&
-	    (i != j)) {  // if there is Direct edge we are done
-	  strongly_connected = C5 && 1;
-	} else if (i != j) {  // Else case
-	  unsigned int nub;   // Define max hop
-	  __CPROVER_assume(nub >= 1 && (nub <= N - 2));
-	  unsigned int gPath[nub];
-
-	  for (k = 0; k < nub; k++) {  // dynamic N - 2 iteration
-	    gPath[k] = zeroTon(N - 1);
-	  }
-
-	  //  Make sure first edge is connected to i  and
-	  //  last edge is connected to j
-	  if ((graph[i][gPath[0]] >= 1) && (graph[gPath[nub - 1]][j] >= 1))
-	    strongly_connected = C5 && 1;
-	  else
-	    strongly_connected = 0;
-
-	  if (nub > 1) {
-	    // rest Of the case is just checking
-	    // edge btw consecutive array elements
-	    for (l = 0; l < nub - 1; l++) {  // Dynamic N - 3  iteration
-	      if (graph[gPath[l]][gPath[l + 1]] >= 1)
-		strongly_connected = C5 && 1;
-	      else
-		strongly_connected = 0;
-	    }
-	  }
-	}
-      }
-    }
-  */
-
   struct EdgeSet edgeset[len];
 
-  //  Fill the Container values with i, j, edgeWeigth, vsnare, tsnare
-  //  Values.
+  //  Initialise the edgeset structure with i, j, edgeWeigth, vsnare, tsnare
   edgePos = 0;
   for (i = 0; i < N; i++) {
     for (j = 0; j < N; j++) {
