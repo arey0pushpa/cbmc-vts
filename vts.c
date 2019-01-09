@@ -1,21 +1,21 @@
-// Ankit Shukla, 6.11.2018 (Austria)
+// Ankit Shukla, 6.11.2018 (Germany)
 /* Copyright 2018 Ankit Shukla
 This file is free a software; you can redistribute
-it and/or modify it under the terms of the GNU General Public License as published by
-the Free Software Foundation and included in this library; either version 3 of the
-License, or any later version. */
+it and/or modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation and included in this library; either
+version 3 of the License, or any later version. */
 
 /*!
   \brief Encoding of finding a Vesicle Traffic System (VTS) network
   with a given connectivity  connectivity (In terms of graph connectedness).
-  
-	RUN the file with 
+
+        RUN the file with
 
 > cbmc vts.c --unwindset c::main.L1:B1,c:main.L2:B2,...
 
-	Provide L_i by:
+        Provide L_i by:
   1.	locating the line number of 'DYNAMIC CODE' comment on the loop]
-	2.  find the matching loop number L_i by running
+        2.  find the matching loop number L_i by running
 
 > cbmc vts.c --show-loops
 
@@ -25,7 +25,7 @@ TODOS:
 
 2. Add test cases.
 
-3. Show the formatted output. 
+3. Show the formatted output.
 
 4. Help option in the software run.
 
@@ -38,7 +38,8 @@ V2. If a molecule is active on an edge, it should be present on the edge.
 
 V3. A molecule should be present to be active on a node.
 
-V4. The edge labels are subset of the node labels of the source and target nodes.
+V4. The edge labels are subset of the node labels of the source and target
+nodes.
 
 V5. Self edges are not allowed.
 
@@ -57,21 +58,19 @@ C1-C4. k-Connectivity constraints.
 */
 
 //#include <ctype.h>
-#include <stdio.h>    // printf() and scanf()
+#include <stdio.h>  // printf() and scanf()
 #include <stdlib.h>
 
+/*
 #define M 4
 #define N 2
 #define snareLength 4
 #define bigLen 16  // 2 ^ M
-#define len 3
+#define edgeCount 3
+*/
 
 _Bool nondet_bool();
 unsigned int nondet_uint();
-
-typedef unsigned __CPROVER_bitvector[M] bitvector;
-typedef unsigned __CPROVER_bitvector[snareLength] snareVector;
-typedef unsigned __CPROVER_bitvector[bigLen] bigVector;
 
 // Constrine the value between 0 and 1
 unsigned int nondet() {
@@ -108,6 +107,42 @@ struct EdgeSet {
 int main(int argc, char** argv)
 
 {
+  int i, N, M, snareLength, bigLen, edgeCount;
+  const char* commands[] = {"-n", "-m", "-e", NULL};
+  enum { N, M, E };
+  if (argc < 2) {
+  usage:
+    printf(
+        "Usage: %s [commands]\n"
+        "-n  Enter the node count.\n"
+        "-m  Enter the mol count.\n"
+        "-e  Enter the edge count.\n",
+        argv[0]);
+    return 0;
+  }
+  for (i = 0; commands[i] && strcmp(argv[1], commands[i]); i++)
+    ;
+  switch (i) {
+    case N:
+      N = i;
+      break;
+    case M:
+      M = i;
+      snareLen = M;
+      bigLen = 2 * M;
+      break;
+    case E:
+      edgeCount = i;
+      break;
+    default:
+      printf("Unknown command..." ...);
+      goto usage;
+  }
+  typedef unsigned __CPROVER_bitvector[M] bitvector;
+  typedef unsigned __CPROVER_bitvector[snareLength] snareVector;
+  typedef unsigned __CPROVER_bitvector[bigLen] bigVector;
+
+  exit(0);
   /*
 int mflag = 0;
 int nflag = 0;
@@ -168,53 +203,53 @@ exit(0);
   for (i = 0; i < N; i++) {
     for (j = 0; j < N; j++) {
       if (i != j) {
-	__CPROVER_assume(graph[i][j] >= 0 && graph[i][j] <= 2);
-	if (graph[i][j] == 1)
-	  edgeCount += 1;
-	else if (graph[i][j] == 2)
-	  edgeCount += 2;
+        __CPROVER_assume(graph[i][j] >= 0 && graph[i][j] <= 2);
+        if (graph[i][j] == 1)
+          edgeCount += 1;
+        else if (graph[i][j] == 2)
+          edgeCount += 2;
       } else
-	__CPROVER_assume(graph[i][j] == 0);
+        __CPROVER_assume(graph[i][j] == 0);
     }
   }
-  __CPROVER_assume(edgeCount == len);
+  __CPROVER_assume(edgeCount == edgeCount);
 
-  struct EdgeSet edgeset[len];
+  struct EdgeSet edgeset[edgeCount];
 
   //  Initialise the edgeset structure with i, j, edgeWeigth, vsnare, tsnare
   edgePos = 0;
   for (i = 0; i < N; i++) {
     for (j = 0; j < N; j++) {
       if ((graph[i][j] == 1) || (graph[i][j] == 2)) {
-	edgeset[edgePos].ith = i;  // Record the source node
-	edgeset[edgePos].jth = j;  // Record the target Node
+        edgeset[edgePos].ith = i;  // Record the source node
+        edgeset[edgePos].jth = j;  // Record the target Node
 
-	// Only molecule present at the nodes are allowed to fly out.
-	__CPROVER_assume((edgeset[edgePos].vSnare & (~Vnodes[i])) == 0);
-	__CPROVER_assume((edgeset[edgePos].tSnare & (~Tnodes[i])) == 0);
+        // Only molecule present at the nodes are allowed to fly out.
+        __CPROVER_assume((edgeset[edgePos].vSnare & (~Vnodes[i])) == 0);
+        __CPROVER_assume((edgeset[edgePos].tSnare & (~Tnodes[i])) == 0);
 
-	// Additional Vedge[i][j] and Tedge[i][j] is
-	// used to be lookup value in global steady state check condition.
-	Vedge[i][j] = edgeset[edgePos].vSnare;
-	Tedge[i][j] = edgeset[edgePos].tSnare;
-	edgePos = edgePos + 1;
+        // Additional Vedge[i][j] and Tedge[i][j] is
+        // used to be lookup value in global steady state check condition.
+        Vedge[i][j] = edgeset[edgePos].vSnare;
+        Tedge[i][j] = edgeset[edgePos].tSnare;
+        edgePos = edgePos + 1;
       }
 
       if ((graph[i][j] == 2)) {
-	edgeset[edgePos].ith = i;  // Record the Source Node
-	edgeset[edgePos].jth = j;  // Record the Target Node
+        edgeset[edgePos].ith = i;  // Record the Source Node
+        edgeset[edgePos].jth = j;  // Record the Target Node
 
-	// Only molecule present at the nodes are
-	// allowed to fly out.
-	__CPROVER_assume((edgeset[edgePos].vSnare & (~Vnodes[i])) == 0);
-	__CPROVER_assume((edgeset[edgePos].tSnare & (~Tnodes[i])) == 0);
+        // Only molecule present at the nodes are
+        // allowed to fly out.
+        __CPROVER_assume((edgeset[edgePos].vSnare & (~Vnodes[i])) == 0);
+        __CPROVER_assume((edgeset[edgePos].tSnare & (~Tnodes[i])) == 0);
 
-	// Additional Vedge2[i][j] and Tedge2[i][j] is
-	// used to be lookup value in global steady
-	// state check condition.
-	Vedge2[i][j] = edgeset[edgePos].vSnare;
-	Tedge2[i][j] = edgeset[edgePos].tSnare;
-	edgePos = edgePos + 1;
+        // Additional Vedge2[i][j] and Tedge2[i][j] is
+        // used to be lookup value in global steady
+        // state check condition.
+        Vedge2[i][j] = edgeset[edgePos].vSnare;
+        Tedge2[i][j] = edgeset[edgePos].tSnare;
+        edgePos = edgePos + 1;
       }
     }
   }
@@ -229,9 +264,9 @@ exit(0);
   C4 = 0;
   for (i = 0; i < N; i++) {
     calc = 0;
-    for (j = 0; j < len; j++) {  // 20 UNWINDINGS
+    for (j = 0; j < edgeCount; j++) {  // 20 UNWINDINGS
       if ((edgeset[j].ith == i) || (edgeset[j].jth == i)) {
-	calc = calc + 1;
+        calc = calc + 1;
       }
     }
     __CPROVER_assume(calc >= 3);
@@ -242,7 +277,7 @@ exit(0);
 
   //  Edgeweight is not allowed to be zero : build C0 to represent that :
   C0 = 1;
-  for (j = 0; j < len; j++) {
+  for (j = 0; j < edgeCount; j++) {
     C0 = (C0 && (edgeset[j].vSnare != 0));
   }
 
@@ -251,150 +286,150 @@ exit(0);
   }
 
   C1 = 1;
-  for (i = 0; i < len; i++) {		   // For each Edge
+  for (i = 0; i < edgeCount; i++) {        // For each Edge
     for (j = 0; j < snareLength; j++) {    // for each molecule
       if (edgeset[i].vSnare & (1 << j)) {  // Present molecules
-	vali = edgeset[i].ith;		   // store the source node
-	valj = edgeset[i].jth;		   // Store the target node
-	// If there is a back edge from taget to source
-	// we are done.
-	if (((graph[valj][vali] == 1) && (Vedge[valj][vali] & (1 << j))) ||
-	    ((graph[valj][vali] == 2) && ((Vedge2[valj][vali] & (1 << j)) ||
-					  (Vedge[valj][vali] & (1 << j))))) {
-	  C1 = C1 && 1;
-	}
-	// Else continue checking for the cycle
-	else {
-	  // g0 is unsigned int checks if there is
-	  // an edge btw two nodes
-	  //  It should be on some cycle, So
-	  //  assume that it'll be between 0 and
-	  //  N-2 As we are Only considering
-	  //  elementary cycles.
-	  unsigned int big;
-	  __CPROVER_assume(big >= 1 && big <= (N - 2));
-	  unsigned int path[big];  // An array to store the
-				   // path taken by
-				   // molecule.
+        vali = edgeset[i].ith;             // store the source node
+        valj = edgeset[i].jth;             // Store the target node
+        // If there is a back edge from taget to source
+        // we are done.
+        if (((graph[valj][vali] == 1) && (Vedge[valj][vali] & (1 << j))) ||
+            ((graph[valj][vali] == 2) && ((Vedge2[valj][vali] & (1 << j)) ||
+                                          (Vedge[valj][vali] & (1 << j))))) {
+          C1 = C1 && 1;
+        }
+        // Else continue checking for the cycle
+        else {
+          // g0 is unsigned int checks if there is
+          // an edge btw two nodes
+          //  It should be on some cycle, So
+          //  assume that it'll be between 0 and
+          //  N-2 As we are Only considering
+          //  elementary cycles.
+          unsigned int big;
+          __CPROVER_assume(big >= 1 && big <= (N - 2));
+          unsigned int path[big];  // An array to store the
+                                   // path taken by
+                                   // molecule.
 
-	  //  Make sure every int is between 0 and
-	  //  N-1 that represent the node
-	  for (l = 0; l < big; l++) {  // Dynamic
-	    path[l] = zeroTon(N - 1);
-	  }
+          //  Make sure every int is between 0 and
+          //  N-1 that represent the node
+          for (l = 0; l < big; l++) {  // Dynamic
+            path[l] = zeroTon(N - 1);
+          }
 
-	  g0 = graph[valj][path[0]];  // g0 is unsigned
-				      // int checks if
-				      // there is an edge
-				      // btw two nodes
-	  v0 = Vedge[valj][path[0]];  // snareVector gets the
-				      // edgeweight of the
-				      // corresponding edge.
-	  v2 = Vedge2[valj][path[0]];
+          g0 = graph[valj][path[0]];  // g0 is unsigned
+                                      // int checks if
+                                      // there is an edge
+                                      // btw two nodes
+          v0 = Vedge[valj][path[0]];  // snareVector gets the
+                                      // edgeweight of the
+                                      // corresponding edge.
+          v2 = Vedge2[valj][path[0]];
 
-	  gl = graph[path[big - 1]][vali];
-	  vl = Vedge[path[big - 1]][vali];  // snareVector gets
-					    // the edgeweight of
-					    // the corresponding
-					    // edge.
-	  vl2 = Vedge2[path[big - 1]][vali];
+          gl = graph[path[big - 1]][vali];
+          vl = Vedge[path[big - 1]][vali];  // snareVector gets
+                                            // the edgeweight of
+                                            // the corresponding
+                                            // edge.
+          vl2 = Vedge2[path[big - 1]][vali];
 
-	  if ((((g0 == 1) && (v0 & (1 << j))) ||
-	       ((g0 == 2) && ((v0 & (1 << j)) || (v2 & (1 << j))))) &&
-	      (((gl == 1) && (vl & (1 << j))) ||
-	       ((gl == 2) && ((vl & (1 << j)) || (vl2 & (1 << j)))))) {
-	    C1 = C1 && 1;
-	  }
+          if ((((g0 == 1) && (v0 & (1 << j))) ||
+               ((g0 == 2) && ((v0 & (1 << j)) || (v2 & (1 << j))))) &&
+              (((gl == 1) && (vl & (1 << j))) ||
+               ((gl == 2) && ((vl & (1 << j)) || (vl2 & (1 << j)))))) {
+            C1 = C1 && 1;
+          }
 
-	  else {
-	    C1 = 0;
-	  }
+          else {
+            C1 = 0;
+          }
 
-	  if (big > 1) {
-	    for (k = 0; k < big - 1; k++) {  // Dynamic
-	      ng = graph[path[k]][path[k + 1]];
-	      nv = Vedge[path[k]][path[k + 1]];
-	      nv2 = Vedge2[path[k]][path[k + 1]];
-	      if (((ng == 1) && (nv & (1 << j))) ||
-		  ((ng == 2) && ((nv & (1 << j)) || (nv2 & (1 << j))))) {
-		C1 = C1 && 1;
-	      } else {
-		C1 = 0;
-	      }
-	    }
-	  }
+          if (big > 1) {
+            for (k = 0; k < big - 1; k++) {  // Dynamic
+              ng = graph[path[k]][path[k + 1]];
+              nv = Vedge[path[k]][path[k + 1]];
+              nv2 = Vedge2[path[k]][path[k + 1]];
+              if (((ng == 1) && (nv & (1 << j))) ||
+                  ((ng == 2) && ((nv & (1 << j)) || (nv2 & (1 << j))))) {
+                C1 = C1 && 1;
+              } else {
+                C1 = 0;
+              }
+            }
+          }
 
-	}  // else Outside closed
+        }  // else Outside closed
       }
     }  // jth for closed
   }    //  ith for closed
 
-  for (i = 0; i < len; i++) {		   // For each Edge
+  for (i = 0; i < edgeCount; i++) {        // For each Edge
     for (j = 0; j < snareLength; j++) {    // for each molecule
       if (edgeset[i].tSnare & (1 << j)) {  // Present molecules
-	vali = edgeset[i].ith;		   // store the source node
-	valj = edgeset[i].jth;		   // Store the target node
+        vali = edgeset[i].ith;             // store the source node
+        valj = edgeset[i].jth;             // Store the target node
 
-	if (((graph[valj][vali] == 1) && (Tedge[valj][vali] & (1 << j))) ||
-	    ((graph[valj][vali] == 2) && (Tedge2[valj][vali] & (1 << j)) ||
-	     (Tedge[valj][vali] & (1 << j)))) {
-	  C1 = C1 && 1;
-	}
+        if (((graph[valj][vali] == 1) && (Tedge[valj][vali] & (1 << j))) ||
+            ((graph[valj][vali] == 2) && (Tedge2[valj][vali] & (1 << j)) ||
+             (Tedge[valj][vali] & (1 << j)))) {
+          C1 = C1 && 1;
+        }
 
-	else {
-	  unsigned int big;
-	  __CPROVER_assume(big >= 1 && big <= (N - 2));
+        else {
+          unsigned int big;
+          __CPROVER_assume(big >= 1 && big <= (N - 2));
 
-	  unsigned int path[big];  // An array to store the
-				   // path taken by
-				   // molecule.
+          unsigned int path[big];  // An array to store the
+                                   // path taken by
+                                   // molecule.
 
-	  //  Make sure every int is between 0 and
-	  //  N-1 that represent the node1
-	  for (l = 0; l < big; l++) {  // Dynamic
-	    path[l] = zeroTon(N - 1);
-	  }
+          //  Make sure every int is between 0 and
+          //  N-1 that represent the node1
+          for (l = 0; l < big; l++) {  // Dynamic
+            path[l] = zeroTon(N - 1);
+          }
 
-	  g0 = graph[valj][path[0]];  // g0 is unsigned
-				      // int checks if
-				      // there is an edge
-				      // btw two nodes
-	  v0 = Tedge[valj][path[0]];  // snareVector gets the
-				      // edgeweight of the
-				      // corresponding edge.
-	  v2 = Tedge2[valj][path[0]];
+          g0 = graph[valj][path[0]];  // g0 is unsigned
+                                      // int checks if
+                                      // there is an edge
+                                      // btw two nodes
+          v0 = Tedge[valj][path[0]];  // snareVector gets the
+                                      // edgeweight of the
+                                      // corresponding edge.
+          v2 = Tedge2[valj][path[0]];
 
-	  gl = graph[path[big - 1]][vali];
-	  vl = Tedge[path[big - 1]][vali];  // snareVector gets
-					    // the edgeweight of
-					    // the corresponding
-					    // edge.
-	  vl2 = Tedge2[path[big - 1]][vali];
+          gl = graph[path[big - 1]][vali];
+          vl = Tedge[path[big - 1]][vali];  // snareVector gets
+                                            // the edgeweight of
+                                            // the corresponding
+                                            // edge.
+          vl2 = Tedge2[path[big - 1]][vali];
 
-	  if ((((g0 == 1) && (v0 & (1 << j))) ||
-	       ((g0 == 2) && ((v0 & (1 << j)) || (v2 & (1 << j))))) &&
-	      (((gl == 1) && (vl & (1 << j))) ||
-	       ((gl == 2) && ((vl & (1 << j)) || (vl2 & (1 << j)))))) {
-	    C1 = C1 && 1;
-	  }
+          if ((((g0 == 1) && (v0 & (1 << j))) ||
+               ((g0 == 2) && ((v0 & (1 << j)) || (v2 & (1 << j))))) &&
+              (((gl == 1) && (vl & (1 << j))) ||
+               ((gl == 2) && ((vl & (1 << j)) || (vl2 & (1 << j)))))) {
+            C1 = C1 && 1;
+          }
 
-	  else {
-	    C1 = 0;
-	  }
-	  if (big > 1) {
-	    for (k = 0; k < big - 1; k++) {  // Dynamic
-	      ng = graph[path[k]][path[k + 1]];
-	      nv = Tedge[path[k]][path[k + 1]];
-	      nv2 = Tedge2[path[k]][path[k + 1]];
-	      if (((ng == 1) && (nv & (1 << j))) ||
-		  ((ng == 2) && ((nv & (1 << j)) || (nv2 & (1 << j))))) {
-		C1 = C1 && 1;
-	      } else {
-		C1 = 0;
-	      }
-	    }
-	  }
-	}  // else Outside closed
+          else {
+            C1 = 0;
+          }
+          if (big > 1) {
+            for (k = 0; k < big - 1; k++) {  // Dynamic
+              ng = graph[path[k]][path[k + 1]];
+              nv = Tedge[path[k]][path[k + 1]];
+              nv2 = Tedge2[path[k]][path[k + 1]];
+              if (((ng == 1) && (nv & (1 << j))) ||
+                  ((ng == 2) && ((nv & (1 << j)) || (nv2 & (1 << j))))) {
+                C1 = C1 && 1;
+              } else {
+                C1 = 0;
+              }
+            }
+          }
+        }  // else Outside closed
       }
     }  // jth for closed
   }    //  ith for closed
@@ -409,7 +444,7 @@ exit(0);
 
   C2 = 1;
   C3 = 1;
-  for (i = 0; i < len; i++) {
+  for (i = 0; i < edgeCount; i++) {
     ticks = 0;
     Ck = 0;
     for (j = 0; j < snareLength; j++) {
@@ -419,18 +454,18 @@ exit(0);
       vali = edgeset[i].ith;
 
       if (v & (1 << j)) {
-	vt = vSnareChoicet[j];
-	result = (vt & (1 << t));
-	if (result == 0) {
-	  edgeset[i].zebra[ticks] = j;
-	  ticks = ticks + 1;
-	  fComp = (Tnodes[valj] & onOffMatrix[valj]);
-	  bComp = (Tnodes[vali] & onOffMatrix[vali]);
-	  vf = vSnareChoicef[j];
-	  if ((vf & (1 << fComp)) && ((vf & (1 << bComp)) == 0)) {
-	    Ck = 1;
-	  }
-	}
+        vt = vSnareChoicet[j];
+        result = (vt & (1 << t));
+        if (result == 0) {
+          edgeset[i].zebra[ticks] = j;
+          ticks = ticks + 1;
+          fComp = (Tnodes[valj] & onOffMatrix[valj]);
+          bComp = (Tnodes[vali] & onOffMatrix[vali]);
+          vf = vSnareChoicef[j];
+          if ((vf & (1 << fComp)) && ((vf & (1 << bComp)) == 0)) {
+            Ck = 1;
+          }
+        }
       }
     }
 
@@ -444,15 +479,15 @@ exit(0);
 
     for (k = 0; k < N; k++) {
       if (k != edgeset[i].jth) {
-	bComp = Tnodes[k] & onOffMatrix[k];
-	for (l = 0; l < edgeset[i].count; l++) {  // THIS IS DYNAMIC CODE
-	  vf = vSnareChoicef[edgeset[i].zebra[l]];
-	  if ((vf & (1 << bComp)) == 0) {
-	    C3 = C3 && 1;
-	  } else {
-	    C3 = C3 && 0;
-	  }
-	}
+        bComp = Tnodes[k] & onOffMatrix[k];
+        for (l = 0; l < edgeset[i].count; l++) {  // THIS IS DYNAMIC CODE
+          vf = vSnareChoicef[edgeset[i].zebra[l]];
+          if ((vf & (1 << bComp)) == 0) {
+            C3 = C3 && 1;
+          } else {
+            C3 = C3 && 0;
+          }
+        }
       }
     }
   }
@@ -462,19 +497,19 @@ exit(0);
     printf(" TNodes[%d] = %d", i, Tnodes[i]);
   }
 
-  for (i = 0; i < len; i++) {
+  for (i = 0; i < edgeCount; i++) {
     printf(
-	"The edge No.%d has this config : \n There is an edge "
-	"between graph[%d][%d]",
-	i, edgeset[i].ith, edgeset[i].jth);
+        "The edge No.%d has this config : \n There is an edge "
+        "between graph[%d][%d]",
+        i, edgeset[i].ith, edgeset[i].jth);
     printf(" SourceNodes[%d] (v : t) = (%d , %d)", edgeset[i].ith,
-	   Vnodes[edgeset[i].ith], Tnodes[edgeset[i].ith]);
+           Vnodes[edgeset[i].ith], Tnodes[edgeset[i].ith]);
     printf(" TargetNodes[%d] (v : t) = (%d , %d) ", edgeset[i].jth,
-	   Vnodes[edgeset[i].jth], Tnodes[edgeset[i].jth]);
+           Vnodes[edgeset[i].jth], Tnodes[edgeset[i].jth]);
     printf(" vSnare =  %d \n tSnare = %d ", edgeset[i].vSnare,
-	   edgeset[i].tSnare);
+           edgeset[i].tSnare);
     printf(" combinedMask = %d \n counts = %d \n", edgeset[i].combinedMask,
-	   edgeset[i].count);
+           edgeset[i].count);
   }
 
   for (i = 0; i < snareLength; i++) {
@@ -498,11 +533,12 @@ exit(0);
       "\nThe value of : \n C0 = %d \n C1 : %d \n C2 : %d , C3 : %d C4 : "
       "%d , strongly_connected = %d \n",
       C0, C1, C2, C3, C4, strongly_connected);
-  printf(" the value of mr.Ticks is %d and len was %d ", ticks, len);
+  printf(" the value of mr.Ticks is %d and edgeCount was %d ", ticks,
+         edgeCount);
 
   // assert(0);
   __CPROVER_assert(!(C0 && C1 && strongly_connected && C2 && C3 && C4),
-		   "Graph that satisfy friendZoned model exists");
+                   "Graph that satisfy friendZoned model exists");
   return 0;
 }
 
