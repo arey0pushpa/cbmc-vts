@@ -30,11 +30,11 @@ version 3 of the License, or any later version. */
 #include <stdlib.h>
 
 #define M 4
-#define N 4
+#define N 2
 #define snareLength 4
 #define dLen 8      // 2 * M
 #define bigLen 256  // 2 ^ (2*M)
-#define len 5
+#define len 2
 
 _Bool nondet_bool();
 unsigned int nondet_uint();
